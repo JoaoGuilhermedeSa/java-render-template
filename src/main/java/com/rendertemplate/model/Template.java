@@ -1,21 +1,23 @@
 package com.rendertemplate.model;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
- * Represents a template with its content and associated data for rendering.
+ * Represents a template with structured sections and associated data for rendering.
  */
 public class Template {
 
     private final String name;
-    private final String content;
+    private final List<TemplateSection> sections;
     private final Map<String, Object> data;
 
     private Template(Builder builder) {
         this.name = builder.name;
-        this.content = builder.content;
+        this.sections = List.copyOf(builder.sections);
         this.data = Collections.unmodifiableMap(new HashMap<>(builder.data));
     }
 
@@ -23,8 +25,8 @@ public class Template {
         return name;
     }
 
-    public String getContent() {
-        return content;
+    public List<TemplateSection> getSections() {
+        return sections;
     }
 
     public Map<String, Object> getData() {
@@ -41,7 +43,7 @@ public class Template {
 
     public static class Builder {
         private String name;
-        private String content;
+        private final List<TemplateSection> sections = new ArrayList<>();
         private final Map<String, Object> data = new HashMap<>();
 
         public Builder name(String name) {
@@ -49,8 +51,23 @@ public class Template {
             return this;
         }
 
-        public Builder content(String content) {
-            this.content = content;
+        public Builder heading(String text) {
+            this.sections.add(new TemplateSection.Heading(text));
+            return this;
+        }
+
+        public Builder paragraph(String text) {
+            this.sections.add(new TemplateSection.Paragraph(text));
+            return this;
+        }
+
+        public Builder table(List<String> headers, List<String> columns) {
+            this.sections.add(new TemplateSection.Table(headers, columns));
+            return this;
+        }
+
+        public Builder section(TemplateSection section) {
+            this.sections.add(section);
             return this;
         }
 
@@ -68,8 +85,8 @@ public class Template {
             if (name == null || name.isBlank()) {
                 throw new IllegalStateException("Template name is required");
             }
-            if (content == null) {
-                throw new IllegalStateException("Template content is required");
+            if (sections.isEmpty()) {
+                throw new IllegalStateException("Template must have at least one section");
             }
             return new Template(this);
         }
@@ -77,6 +94,6 @@ public class Template {
 
     @Override
     public String toString() {
-        return "Template{name='%s', dataKeys=%s}".formatted(name, data.keySet());
+        return "Template{name='%s', sections=%d, dataKeys=%s}".formatted(name, sections.size(), data.keySet());
     }
 }
